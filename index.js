@@ -1,44 +1,60 @@
 var request = require('request');
-
-let endpoint = "http://k8s-api-admanage-722963cf63-07b91371adcfddaf.elb.us-east-1.amazonaws.com/admanager/creative?campaign=5f6413c9612b1a0015099993_170034|"
-//dummy middle text = "5bc0e10e25c7d7796ebe8fc0_BZVKTzzvKk1EtzFO:a:VB8z4SeYi0sA7Dcc"
-let end_string = "|dsp-5f6415539290720015d69d84|64a660e906d46a27ea43e666";
+var fs = require('fs');
 
 
-let dummy = '5e56893e6c71d40018de3ad1_29876';
-let dummy2 = '5f6413c9612b1a0015099993_480795';
 
+
+// paste value obtained from lookerScript.js
 let pasteHere = [
-    "5e56893e6c71d40018de3ad1_29876",
-    "5e56893e6c71d40018de3ad1_29816",
-    "5e56893e6c71d40018de3ad1_26525",
-    "5e56893e6c71d40018de3ad1_29655",
-    "5e56893e6c71d40018de3ad1_29828",
-    "5e56893e6c71d40018de3ad1_30933",
-    "5e56893e6c71d40018de3ad1_29972"
-]
+"6163ee8d2e2c3200179604b9_767cdc8a3e7126857d67c37a9a982570",
+"6163ee8d2e2c3200179604b9_52a03e45c55453a99250fc8fcd38f038",
+"6163ee8d2e2c3200179604b9_84d98c4271af5907776705bad8ecdfe3c680de96c742e4f53c391b5dbd3795b78c1c724fcde2f7f6fa352b61d08f3b87",
+"6163ee8d2e2c3200179604b9_388244406f1115cfd88022d2962fedaf3778b10a626fd8d2b76f1e740609307d9daab4d83611e4eec21ed401268207fb",
+"6163ee8d2e2c3200179604b9_b4ba2cb722c5af8937c998285ee0677b"
+];
 
-//let w=0;
+var obj = {
+    bidResArr: []
+}
+
+
 async function getBidResponses(a) {
-    for (w in a) {
+    for (let w = 0; w<a.length; w++){
         var options = {
           'method': 'GET',
-          'url': `http://k8s-api-admanage-722963cf63-07b91371adcfddaf.elb.us-east-1.amazonaws.com/admanager/creative?campaign=5f6413c9612b1a0015099993_170034|${a[w]}|dsp-5f6415539290720015d69d84|64a660e906d46a27ea43e666`,
+          'url': `http://k8s-api-admanage-ec9a86a9e2-b2b9a77bec01c992.elb.us-east-1.amazonaws.com/admanager/creative?campaign=5f6413c9612b1a0015099993_170034|${a[w]}|dsp-5f6415539290720015d69d84|64a660e906d46a27ea43e666`,
           'headers': {
           }
         };
         try {
-            let response = await request(options, function (error, response) {
-              if (error) throw new Error(error);
-              console.log(response.body);
-              console.log(w);
-              console.log(a[w]);
-              w--;
+            var response = await request(options, function (error, response) {
+                if (error) throw new Error(error);
+                console.log(w)
+//              console.log(a[w]);
+              if(response.body.length > 70) {
+                  obj.bidResArr.push(JSON.stringify(response.body));
+                  fs.writeFile(`WebServer/bid_responses/_br_${w}.json`,response.body,(err)=>{console.log(err)});
+                  fs.writeFile(`WebServer/bid_responses/br_${w}_${a[w]}.html`,`<html> <meta name="viewport" content="width=device-width, initial-scale=1" /> <script> function myFunction() {
+                    // Get the text field
+                    var copyText = document.getElementById("myInput").innerText;
+                  
+                     // Copy the text inside the text field
+                    navigator.clipboard.writeText(${JSON.stringify(response.body)});
+                  } </script <body> <!-- The text field -->
+                  <p id="myInput"" style="display: none">${response.body} </p>
+                  
+                  <!-- The button used to copy the text -->
+                  <button onclick="myFunction()">Copy text</button> </body></html>`,(err)=>{console.log(err)});
+                } else {console.log('too short!')}
             });
         } catch (e) {
             console.error(e)
         }
-//        console.log(w)
     }
 }
-getBidResponses(pasteHere);
+
+getBidResponses(pasteHere).then((()=>{console.log('all done!')}));
+    
+
+
+
